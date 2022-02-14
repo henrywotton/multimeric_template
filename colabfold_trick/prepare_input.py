@@ -2,8 +2,7 @@
 # 
 # 
 # 
-# Author: Dingquan Yu, EMBL-Hamburg
-# 
+# Author: Dingquan Yu
 # 
 # 
 # 
