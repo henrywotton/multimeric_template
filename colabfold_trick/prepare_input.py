@@ -56,23 +56,40 @@ class MultimericInput:
         len_host = host_template.shape[1]
 
         """create mock aatypes"""
-        mock_template_sequence_for_L = "-" * len_L_fragment
-        mock_template_sequence_for_host = "-" * len_host
+        mock_template_sequence_for_L = "-" * len_host
+        mock_template_sequence_for_host = "-" * len_L_fragment
         mock_template_aatype_for_L = templates.residue_constants.sequence_to_onehot(
         mock_template_sequence_for_L, templates.residue_constants.HHBLITS_AA_TO_ID)
         tiled_template_aatype_for_L = np.tile(
             mock_template_aatype_for_L,(L_template.shape[0],1,1)
         )
-        concat_aatype_for_L = np.concatenate((tiled_template_aatype_for_L,L_template))
+        concat_aatype_for_L = np.concatenate((tiled_template_aatype_for_L,L_template),axis=1)
 
         mock_template_aatype_for_host =  templates.residue_constants.sequence_to_onehot(
         mock_template_sequence_for_host, templates.residue_constants.HHBLITS_AA_TO_ID)
         tiled_template_aatype_for_host = np.tile(
             mock_template_aatype_for_host,(host_template.shape[0],1,1)
         )
-        concat_aatype_for_host = np.concatenate((host_template,tiled_template_aatype_for_host))
+        concat_aatype_for_host = np.concatenate((host_template,tiled_template_aatype_for_host),axis=1)
 
         return np.concatenate((concat_aatype_for_host,concat_aatype_for_L),axis=0)
 
     def concatenate_template_all_atom_mask(self):
+        """concatenate template all_atom_mask"""
+        L_template = self.monomers[-1]['template_all_atom_mask']
+        host_template = self.monomers[0]['template_all_atom_mask']
+        len_L_fragment = L_template.shape[1]
+        len_host = host_template.shape[1]
+
+        """create mock atoms_mask"""
+        mock_template_mask_for_L = np.zeros((len_host, templates.residue_constants.atom_type_num))
+        mock_template_mask_for_host = np.zeros((len_L_fragment, templates.residue_constants.atom_type_num))
         
+        tiled_template_mask_for_L = np.tile(mock_template_mask_for_L,(L_template.shape[0],1,1))
+        tiled_template_mask_for_host = np.tile(mock_template_mask_for_host,(host_template.shape[0],1,1))
+
+        concat_atom_mask_for_L = np.concatenate((tiled_template_mask_for_L,L_template),axis=1)
+
+        concat_atom_mask_for_host = np.concatenate((tiled_template_mask_for_host,host_template),axis=1)
+
+        return np.concatenate((concat_atom_mask_for_host,concat_atom_mask_for_L),axis=0)
