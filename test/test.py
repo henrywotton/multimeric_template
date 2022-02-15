@@ -1,6 +1,6 @@
 import unittest
 from colabfold_trick.prepare_input import MultimericInput
-test_feature_dict = '/media/geoffrey/bigdata/scratch/gyu/af2_lasv_L_apms_precomputed'
+test_feature_dict = '/scratch/gyu/af2_lasv_L_apms_precomputed'
 test_protein_names = ['O00571','fragment_1']
 
 class TestSum(unittest.TestCase):
@@ -22,11 +22,11 @@ class TestSum(unittest.TestCase):
 
         total_num_templates = 0
         for m in test_input.monomers:
-            total_num_templates += m['template_aatype'].shape[0]
+            total_num_templates += m.template_feature_dict['template_aatype'].shape[0]
         
         total_seq_length = 0
         for m in test_input.monomers:
-            total_seq_length += m['template_aatype'].shape[1]
+            total_seq_length += m.template_feature_dict['template_aatype'].shape[1]
 
         print(f"Total number of templates is {total_num_templates}")
         print(f"Final sequence length is {total_seq_length}")

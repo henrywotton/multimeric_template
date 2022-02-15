@@ -30,7 +30,7 @@ class MultimericInput:
         self.feature_dir = feature_dir
         self.protein_names = protein_names
         self.monomers = list()
-        self.new_aatype = np.array()
+        self.new_aatype = np.array([0])
         pass
 
     def create_monomeric_objects(self) -> None:
@@ -50,8 +50,8 @@ class MultimericInput:
         concatenate template aatypess from monomeric objects
         Here because I only work on L fragments and others so the re-ordering is hard-coded 
         """
-        L_template = self.monomers[-1]['template_aatype']
-        host_template = self.monomers[0]['template_aatype']
+        L_template = self.monomers[-1].template_feature_dict['template_aatype']
+        host_template = self.monomers[0].template_feature_dict['template_aatype']
         len_L_fragment = L_template.shape[1]
         len_host = host_template.shape[1]
 
@@ -76,8 +76,8 @@ class MultimericInput:
 
     def concatenate_template_all_atom_mask(self):
         """concatenate template all_atom_mask"""
-        L_template = self.monomers[-1]['template_all_atom_mask']
-        host_template = self.monomers[0]['template_all_atom_mask']
+        L_template = self.monomers[-1].template_feature_dict['template_all_atom_mask']
+        host_template = self.monomers[0].template_feature_dict['template_all_atom_mask']
         len_L_fragment = L_template.shape[1]
         len_host = host_template.shape[1]
 
