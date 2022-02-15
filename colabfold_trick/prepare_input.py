@@ -31,6 +31,7 @@ class MultimericInput:
         self.protein_names = protein_names
         self.monomers = list()
         self.new_aatype = np.array([0])
+        self.num_template=0
         pass
 
     def create_monomeric_objects(self) -> None:
@@ -44,96 +45,103 @@ class MultimericInput:
                 m.parse_template_features()
             
             self.monomers.append(m)
-    
-    def concatenate_template_aatype(self):
-        """
-        concatenate template aatypess from monomeric objects
-        Here because I only work on L fragments and others so the re-ordering is hard-coded 
-        """
-        L_template = self.monomers[-1].template_feature_dict['template_aatype']
-        host_template = self.monomers[0].template_feature_dict['template_aatype']
-        len_L_fragment = L_template.shape[1]
-        len_host = host_template.shape[1]
-
-        """create mock aatypes"""
-        mock_template_sequence_for_L = "-" * len_host
-        mock_template_sequence_for_host = "-" * len_L_fragment
-        mock_template_aatype_for_L = templates.residue_constants.sequence_to_onehot(
-        mock_template_sequence_for_L, templates.residue_constants.HHBLITS_AA_TO_ID)
-        tiled_template_aatype_for_L = np.tile(
-            mock_template_aatype_for_L,(L_template.shape[0],1,1)
-        )
-        concat_aatype_for_L = np.concatenate((tiled_template_aatype_for_L,L_template),axis=1)
-
-        mock_template_aatype_for_host =  templates.residue_constants.sequence_to_onehot(
-        mock_template_sequence_for_host, templates.residue_constants.HHBLITS_AA_TO_ID)
-        tiled_template_aatype_for_host = np.tile(
-            mock_template_aatype_for_host,(host_template.shape[0],1,1)
-        )
-        concat_aatype_for_host = np.concatenate((host_template,tiled_template_aatype_for_host),axis=1)
-
-        return np.concatenate((concat_aatype_for_host,concat_aatype_for_L),axis=0)
-
-    def concatenate_template_all_atom_mask(self):
-        """concatenate template all_atom_mask"""
-        L_template = self.monomers[-1].template_feature_dict['template_all_atom_masks']
-        host_template = self.monomers[0].template_feature_dict['template_all_atom_masks']
-        len_L_fragment = L_template.shape[1]
-        len_host = host_template.shape[1]
-
-        """create mock atoms_mask"""
-        mock_template_mask_for_L = np.zeros((len_host, templates.residue_constants.atom_type_num))
-        mock_template_mask_for_host = np.zeros((len_L_fragment, templates.residue_constants.atom_type_num))
         
-        tiled_template_mask_for_L = np.tile(mock_template_mask_for_L,(L_template.shape[0],1,1))
-        tiled_template_mask_for_host = np.tile(mock_template_mask_for_host,(host_template.shape[0],1,1))
-
-        concat_atom_mask_for_L = np.concatenate((tiled_template_mask_for_L,L_template),axis=1)
-
-        concat_atom_mask_for_host = np.concatenate((tiled_template_mask_for_host,host_template),axis=1)
-
-        return np.concatenate((concat_atom_mask_for_host,concat_atom_mask_for_L),axis=0)
-
-    def concatenate_template_atom_pos(self):
-        """concatenate template all_atom_pos"""
-        L_template = self.monomers[-1].template_feature_dict['template_all_atom_positions']
-        host_template = self.monomers[0].template_feature_dict['template_all_atom_positions']
-        len_L_fragment = L_template.shape[1]
-        len_host = host_template.shape[1]
-
-        """create mock atoms_pos"""
-        mock_template_pos_for_L = np.zeros((len_host, templates.residue_constants.atom_type_num,3))
-        mock_template_pos_for_host = np.zeros((len_L_fragment, templates.residue_constants.atom_type_num,3))
-        
-        tiled_template_mask_for_L = np.tile(mock_template_pos_for_L,(L_template.shape[0],1,1))
-        tiled_template_mask_for_host = np.tile(mock_template_pos_for_host,(host_template.shape[0],1,1))
-
-        concat_atom_pos_for_L = np.concatenate((tiled_template_mask_for_L,L_template),axis=1)
-
-        concat_atom_pos_for_host = np.concatenate((tiled_template_mask_for_host,host_template),axis=1)
-
-        return np.concatenate((concat_atom_pos_for_host,concat_atom_pos_for_L),axis=0)
-
-    def concatenate_template_sum_pos(self):
-        """concatenate sum_pos"""
-        num_temp = 0
         for m in self.monomers:
-            num_temp += m.template_feature_dict['template_aatype'].shape[0]
-        return np.zeros([num_temp], dtype=np.float32)
+            self.num_template += m.template_feature_dict['template_aatype'].shape[0]
+        
+
+    def create_concatenated_template_features(self) -> dict:
+        """It is only for 2 subunits for now so it is hard coded"""
+        seq_length_1 = self.monomers[0].template_feature_dict['template_aatype'].shape[1]
+        seq_length_2 = self.monomers[1].template_feature_dict['template_aatype'].shape[1]
+        num_template_1 = self.monomers[0].template_feature_dict['template_aatype'].shape[0]
+        num_template_2 = self.monomers[1].template_feature_dict['template_aatype'].shape[0]
+        
+        concat_aatype_1,concat_atom_mask_1,concat_atom_pos_1 = self.concatenate_features(idx=0,
+        seq_length=seq_length_2,num_template=num_template_1)
+        
+        concat_aatype_2,concat_atom_mask_2,concat_atom_pos_2 = self.concatenate_features(idx=1,
+        seq_length=seq_length_1,num_template=num_template_2)
+
+        def prepare_output(array1,array2):
+            return np.concatenate((array1,array2),axis=0)
+
+        output_aatype = prepare_output(concat_aatype_1,concat_aatype_2)
+        output_atom_mask = prepare_output(concat_atom_mask_1,concat_atom_mask_2)
+        output_atom_pos = prepare_output(concat_atom_pos_1,concat_atom_pos_2)
+        output_domain_names = self.concatenate_domain_names()
+
+        return {
+            "template_all_atom_positions" : output_atom_pos,
+            "template_all_atom_masks" : output_atom_mask,
+            "template_sequence" : [f"none".encode()] * self.num_template,
+            "template_aatype" : output_aatype,
+            "template_domain_names" : output_domain_names,
+            "template_release_date": [f"none".encode()] * self.num_template,
+            "template_sum_probs": np.zeros([self.num_template], dtype=np.float32),
+            "template_sequence" : [f"none".encode()] * self.num_template
+        }
+    
+    def create_mock_aatype(self,seq_length,num_template):
+        """create mock sequence then turn it into one-hot. Tile the one-hot to be the same dimension as original """
+        mock_template_sequence = "-" * seq_length
+        mock_template_aatype = templates.residue_constants.sequence_to_onehot(
+        mock_template_sequence, templates.residue_constants.HHBLITS_AA_TO_ID)
+        tiled_template_aatype = np.tile(
+            mock_template_aatype,(num_template,1,1)
+        )
+
+        return tiled_template_aatype
+
+    def create_mock_atom_mask(self,seq_length,num_template):
+        """create mock atom mask it"""
+        mock_atom_mask = np.zeros((seq_length, templates.residue_constants.atom_type_num))
+        tiled_atom_mask = np.tile(mock_atom_mask,(num_template,1,1))
+        return tiled_atom_mask
+
+    def create_mock_atom_pos(self,seq_length,num_template):
+        """create mock atom positions """
+        mock_atom_pos = np.zeros((seq_length, templates.residue_constants.atom_type_num,3)) 
+        tiled_atom_pos = np.tile(mock_atom_pos,(num_template,1,1,1))
+        return tiled_atom_pos
+
+    def concatenate_features(self,idx,seq_length,num_template):
+        """
+        a more generic function to concatenate features
+        
+        Args:
+        feature_name: name of the feature that to be concatenated
+        idx: idx of the monomeric object in the list
+        """
+        orig_aatype = self.monomers[idx].template_feature_dict['template_aatype']
+        orig_atom_mask = self.monomers[idx].template_feature_dict['template_all_atom_masks']
+        orig_atom_pos = self.monomers[idx].template_feature_dict['template_all_atom_positions']
+        
+        
+        tiled_mock_aatype = self.create_mock_aatype(seq_length=seq_length,
+        num_template=num_template)
+        tiled_atom_mask = self.create_mock_atom_mask(seq_length=seq_length,
+        num_template=num_template)
+        tiled_atom_pos = self.create_mock_atom_pos(seq_length=seq_length,
+        num_template=num_template)
+        
+        if (idx %2 )==0:
+            concat_aatype = np.concatenate((orig_aatype,tiled_mock_aatype),axis=1)
+            concat_atom_mask = np.concatenate((orig_atom_mask,tiled_atom_mask),axis=1)
+            concat_atom_pos = np.concatenate((orig_atom_pos,tiled_atom_pos),axis=1)
+        else:
+            concat_aatype = np.concatenate((tiled_mock_aatype,orig_aatype),axis=1)
+            concat_atom_mask = np.concatenate((tiled_atom_mask,orig_atom_mask),axis=1)
+            concat_atom_pos = np.concatenate((tiled_atom_pos,orig_atom_pos),axis=1)
+
+        return concat_aatype,concat_atom_mask,concat_atom_pos
+
 
     def concatenate_domain_names(self):
         """concatenate domain names"""
 
         conct_domains = []
         for m in self.monomers:
-            conct_domains = np.concatenate((conct_domains,m.template_domain_names['template_domain_names']))
+            conct_domains = np.concatenate((conct_domains,m.template_feature_dict['template_domain_names']))
 
         return conct_domains
-    
-    def concatenate_sequences(self):
-        num_temp = 0
-        for m in self.monomers:
-            num_temp += m.template_feature_dict['template_aatype'].shape[0]
-        
-        return [f"none".encode()] * num_temp
-        
