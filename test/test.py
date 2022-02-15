@@ -28,8 +28,6 @@ class TestSum(unittest.TestCase):
         for m in test_input.monomers:
             total_seq_length += m.template_feature_dict['template_aatype'].shape[1]
 
-        print(f"Total number of templates is {total_num_templates}")
-        print(f"Final sequence length is {total_seq_length}")
 
         self.assertEqual((total_num_templates,total_seq_length,22),output_dict['template_aatype'].shape)
 
@@ -47,10 +45,6 @@ class TestSum(unittest.TestCase):
         total_seq_length = 0
         for m in test_input.monomers:
             total_seq_length += m.template_feature_dict['template_all_atom_masks'].shape[1]
-
-        print(f"Total number of templates is {total_num_templates}")
-        print(f"Final sequence length is {total_seq_length}")
-
 
         self.assertEqual((total_num_templates,total_seq_length,37),output_dict['template_all_atom_masks'].shape)
 
