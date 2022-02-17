@@ -12,6 +12,7 @@ import pickle as pkl
 import os 
 from .monomeric_object import MonomericObject
 from .concatenate_template_object import ConcatenatedTemplate
+from .msa_feature_object import MSAFeatures
 import numpy as np
 
 class MultimericInput:
@@ -23,7 +24,7 @@ class MultimericInput:
     protein_names: names of the subunits to model
     """
 
-    def __init__(self, feature_dir, protein_names) -> None:
+    def __init__(self, feature_dir,protein_names) -> None:
         self.feature_dir = feature_dir
         self.protein_names = protein_names
         self.monomers = list()
@@ -44,7 +45,6 @@ class MultimericInput:
         
         for m in self.monomers:
             self.num_template += m.template_feature_dict['template_aatype'].shape[0]
-        
 
     def create_concatenated_template_features(self) -> dict:
         """It is only for 2 subunits for now so it is hard coded"""
@@ -78,3 +78,12 @@ class MultimericInput:
             "template_sum_probs": np.zeros([self.num_template], dtype=np.float32),
             "template_sequence" : [f"none".encode()] * self.num_template
         }
+
+    def create_msa_dict(self,work_dir) -> dict:
+        """create an MSAFeatures object and return msa feature dict"""
+
+        msa_feature_object = MSAFeatures(work_dir)
+        msa_feature_object.prepare_sequences()
+        msa_feature_object.make_features()
+
+        return msa_feature_object.msa_feature
