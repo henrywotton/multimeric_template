@@ -32,32 +32,7 @@ from alphafold.model import data
 # Now need to pick up from there and run the model prediction
 # 29/Dec/2021 
 # ##
-flags.DEFINE_string('output_dir', None, 'Path to a directory that will '
-                    'store the results.')
-flags.DEFINE_integer('num_cycle',3,help="number of recycles")
-flags.DEFINE_string('data_dir', None, 'Path to params directory')
-flags.DEFINE_string('fasta_name', None, 'name of the complex')
-flags.DEFINE_string('feature_dict_path', None, 'Path to pre-processed feature dict.')
 
-flags.DEFINE_boolean('benchmark', False, 'Run multiple JAX model evaluations '
-                     'to obtain a timing that excludes the compilation time, '
-                     'which should be more indicative of the time required for '
-                     'inferencing many proteins.')
-flags.DEFINE_boolean('amber_relax', False, 'Run multiple JAX model evaluations '
-                     'to obtain a timing that excludes the compilation time, '
-                     'which should be more indicative of the time required for '
-                     'inferencing many proteins.')
-
-flags.DEFINE_boolean('random_seed', False, 'Run multiple JAX model evaluations '
-                     'to obtain a timing that excludes the compilation time, '
-                     'which should be more indicative of the time required for '
-                     'inferencing many proteins.')
-flags.DEFINE_enum('model_preset', 'multimer',
-                  ['monomer', 'monomer_casp14', 'monomer_ptm', 'multimer'],
-                  'Choose preset model configuration - the monomer model, '
-                  'the monomer model with extra ensembling, monomer model with '
-                  'pTM head, or multimer model')
-FLAGS = flags.FLAGS
 
 MAX_TEMPLATE_HITS = 20
 RELAX_MAX_ITERATIONS = 0

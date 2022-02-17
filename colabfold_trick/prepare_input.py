@@ -10,9 +10,9 @@
 """Functions for preparing input"""
 import pickle as pkl
 import os 
-from .monomeric_object import MonomericObject
-from .concatenate_template_object import ConcatenatedTemplate
-from .msa_feature_object import MSAFeatures
+from monomeric_object import MonomericObject
+from concatenate_template_object import ConcatenatedTemplate
+from msa_feature_object import MSAFeatures
 import numpy as np
 
 class MultimericInput:
