@@ -1,6 +1,9 @@
 import unittest
 from colabfold_trick.prepare_input import MultimericInput
+import os
+
 test_feature_dict = '/scratch/gyu/af2_lasv_L_apms_precomputed'
+test_processed_dict = '/scratch/gyu/af2_lasv_L_apms_result'
 test_protein_names = ['O00571','fragment_1']
 
 class TestSum(unittest.TestCase):
@@ -45,6 +48,10 @@ class TestSum(unittest.TestCase):
         total_seq_length = 0
         for m in test_input.monomers:
             total_seq_length += m.template_feature_dict['template_all_atom_masks'].shape[1]
+        
+
+        print(f"Total number of templates is {total_num_templates}")
+        print(f"Final sequence length is {total_seq_length}")
 
         self.assertEqual((total_num_templates,total_seq_length,37),output_dict['template_all_atom_masks'].shape)
 
@@ -68,6 +75,18 @@ class TestSum(unittest.TestCase):
 
 
         self.assertEqual((total_num_templates,total_seq_length,37,3),output_dict['template_all_atom_positions'].shape)
-    
+
+    def test_msa_feature(self):
+        test_input = MultimericInput(test_feature_dict,test_protein_names)
+        test_input.create_monomeric_objects()
+        work_dir = os.path.join(test_processed_dict,f"{test_protein_names[0]}/{test_protein_names[1]}") 
+        output_msa = test_input.create_msa_dict(work_dir)
+        
+        total_seq_length = 0
+        for m in test_input.monomers:
+            total_seq_length += m.template_feature_dict['template_all_atom_masks'].shape[1]
+
+        self.assertEqual(total_seq_length,output_msa['seq_length'][0])
+
 if __name__ == '__main__':
     unittest.main()
