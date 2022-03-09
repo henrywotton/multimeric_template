@@ -39,8 +39,7 @@ flags.DEFINE_string("precomputed_dir",None,help="directory to precomputed featur
 flags.DEFINE_string("processed_dir",None,help="directory to processed features")
 flags.DEFINE_string("protein_names",None,help="name of the pair: A-B")
 flags.DEFINE_string("output_dir",None,help="output directory")
-flags.DEFINE_string("data_dir",None,help="data dir")
-flags.DEFINE_integer("num_cycle",3,help="number of recycle")
+
 FLAGS = flags.FLAGS
 
 def create_input_dict(base_precomputed_dir,base_processed_dir,input_protein_names):
@@ -61,33 +60,9 @@ def create_input_dict(base_precomputed_dir,base_processed_dir,input_protein_name
 def main(argv):
     """main function """
 
-    
-    num_ensemble = 1
-    model_runners = {}
-    model_names = config.MODEL_PRESETS['monomer_ptm']
-    
-    for model_name in model_names:
-        model_config = config.model_config(model_name)  
-        model_config['model'].update({'num_recycle':FLAGS.num_cycle})
-        logging.info("the number of recyles is {}".format(model_config['model']['num_recycle']))
-        model_config.model.num_ensemble_eval = num_ensemble
-        model_params = data.get_model_haiku_params(
-            model_name=model_name, data_dir=FLAGS.data_dir)
-        model_runner = model.RunModel(model_config, model_params)
-        model_runners[model_name] = model_runner
-    logging.info('Have %d models: %s', len(model_runners),
-               list(model_runners.keys()))
-
-    if random_seed is None:
-        random_seed = random.randrange(sys.maxsize // len(model_names))
-        logging.info('Using random seed %d for the data pipeline', random_seed)
-
-
     feature_dict = create_input_dict(FLAGS.precomputed_dir,FLAGS.processed_dir,FLAGS.protein_names)
-    predict(model_runners=model_runners,output_dir=FLAGS.output_dir,
-    feature_dict=feature_dict,random_seed=False,benchmark=False,
-    fasta_name=FLAGS.protein_names,
-    amber_relaxer=False)
+    dump_path = os.path.join(FLAGS.output_dir,'processed_feature.pkl')
+    pickle.dump(feature_dict,open(dump_path,'wb'))
 
 if __name__ == '__main__':
     app.run(main)
