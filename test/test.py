@@ -87,6 +87,6 @@ class TestSum(unittest.TestCase):
             total_seq_length += m.template_feature_dict['template_all_atom_masks'].shape[1]
 
         self.assertEqual(total_seq_length,output_msa['seq_length'][0])
-
+        self.assertEqual(output_msa['seq_length'][0],output_msa['residue_index'].shape[0])
 if __name__ == '__main__':
     unittest.main()
