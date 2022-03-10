@@ -13,7 +13,6 @@ import pickle
 import random
 import shutil
 import sys
-from alphafold.model import data
 import time
 from typing import Dict, Union, Optional
 
