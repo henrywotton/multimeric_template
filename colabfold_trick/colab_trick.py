@@ -32,8 +32,7 @@ def create_input_dict(base_precomputed_dir,base_processed_dir,input_protein_name
 
     multimetic_input = MultimericInput(base_precomputed_dir,protein_names)
     multimetic_input.create_monomeric_objects()
-    work_dir = os.path.join(base_processed_dir,f"{protein_names[0]}/{protein_names[1]}")
-    output_msa_feature_dict = multimetic_input.create_msa_dict(work_dir)
+    output_msa_feature_dict = multimetic_input.create_msa_dict(base_processed_dir)
 
     if not FLAGS.use_template:
         output_template_dict = multimetic_input.create_mock_template_features()
