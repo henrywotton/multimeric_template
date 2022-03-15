@@ -23,7 +23,7 @@ class MonomericObject:
     """
     def __init__(self, feature_dir):
         self.feature_dir = feature_dir
-        self.template_feature_dict = dict()
+        self.feature_dict = dict()
     
     def check_dir_exist(self):
         """check if the directory exists"""
@@ -35,12 +35,13 @@ class MonomericObject:
         else:
             return True
 
-    def parse_template_features(self):
-        pkl_path = os.path.join(self.feature_dir,'msas/template_feature_dict.pkl')
+    def parse_features(self):
+        """method to parse all features"""
+        pkl_path = os.path.join(self.feature_dir,'msas/feature_dict.pkl')
         try:
             os.path.isfile(pkl_path)
         except:
             raise FileNotFoundError(f"{pkl_path} does not exist")
         else:
-            self.template_feature_dict = pkl.load(open(pkl_path,'rb'))
+            self.feature_dict = pkl.load(open(pkl_path,'rb'))
     

@@ -20,6 +20,7 @@ flags.DEFINE_string("precomputed_dir",None,help="directory to precomputed featur
 flags.DEFINE_string("processed_dir",None,help="directory to processed features")
 flags.DEFINE_string("protein_names",None,help="name of the pair: A-B")
 flags.DEFINE_string("output_dir",None,help="output directory")
+flags.DEFINE_boolean("use_template",True,help="use templates or not")
 
 FLAGS = flags.FLAGS
 
@@ -33,7 +34,11 @@ def create_input_dict(base_precomputed_dir,base_processed_dir,input_protein_name
     multimetic_input.create_monomeric_objects()
     work_dir = os.path.join(base_processed_dir,f"{protein_names[0]}/{protein_names[1]}")
     output_msa_feature_dict = multimetic_input.create_msa_dict(work_dir)
-    output_template_dict = multimetic_input.create_concatenated_template_features()
+
+    if not FLAGS.use_template:
+        output_template_dict = multimetic_input.create_mock_template_features()
+    else:
+        output_template_dict = multimetic_input.create_concatenated_template_features()
 
     return {**output_msa_feature_dict,**output_template_dict}
 

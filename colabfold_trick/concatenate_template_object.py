@@ -16,9 +16,9 @@ class ConcatenatedTemplate:
         feature_name: name of the feature that to be concatenated
         idx: idx of the monomeric object in the list
         """
-        orig_aatype = self.monomers[idx].template_feature_dict['template_aatype']
-        orig_atom_mask = self.monomers[idx].template_feature_dict['template_all_atom_masks']
-        orig_atom_pos = self.monomers[idx].template_feature_dict['template_all_atom_positions']
+        orig_aatype = self.monomers[idx].feature_dict['template_aatype']
+        orig_atom_mask = self.monomers[idx].feature_dict['template_all_atom_masks']
+        orig_atom_pos = self.monomers[idx].feature_dict['template_all_atom_positions']
         
         
         tiled_mock_aatype = self.create_mock_aatype(seq_length=seq_length,
@@ -71,9 +71,9 @@ class ConcatenatedTemplate:
         feature_name: name of the feature that to be concatenated
         idx: idx of the monomeric object in the list
         """
-        orig_aatype = self.monomers[idx].template_feature_dict['template_aatype']
-        orig_atom_mask = self.monomers[idx].template_feature_dict['template_all_atom_masks']
-        orig_atom_pos = self.monomers[idx].template_feature_dict['template_all_atom_positions']
+        orig_aatype = self.monomers[idx].feature_dict['template_aatype']
+        orig_atom_mask = self.monomers[idx].feature_dict['template_all_atom_masks']
+        orig_atom_pos = self.monomers[idx].feature_dict['template_all_atom_positions']
         
         
         tiled_mock_aatype = self.create_mock_aatype(seq_length=seq_length,
@@ -100,6 +100,6 @@ class ConcatenatedTemplate:
 
         conct_domains = []
         for m in self.monomers:
-            conct_domains = np.concatenate((conct_domains,m.template_feature_dict['template_domain_names']))
+            conct_domains = np.concatenate((conct_domains,m.feature_dict['template_domain_names']))
 
         return conct_domains

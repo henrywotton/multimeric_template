@@ -10,6 +10,7 @@
 """Functions for preparing input"""
 import pickle as pkl
 import os 
+from alphafold.data import templates
 from monomeric_object import MonomericObject
 from concatenate_template_object import ConcatenatedTemplate
 from msa_feature_object import MSAFeatures
@@ -28,6 +29,7 @@ class MultimericInput:
         self.feature_dir = feature_dir
         self.protein_names = protein_names
         self.monomers = list()
+        self.query_sequence = ''
         self.new_aatype = np.array([0])
         self.num_template=0
         pass
@@ -39,19 +41,19 @@ class MultimericInput:
             m = MonomericObject(curr_feature_dir)
 
             if m.check_dir_exist():
-                m.parse_template_features()
+                m.parse_features()
             
             self.monomers.append(m)
         
         for m in self.monomers:
-            self.num_template += m.template_feature_dict['template_aatype'].shape[0]
+            self.num_template += m.feature_dict['template_aatype'].shape[0]
 
     def create_concatenated_template_features(self) -> dict:
         """It is only for 2 subunits for now so it is hard coded"""
-        seq_length_1 = self.monomers[0].template_feature_dict['template_aatype'].shape[1]
-        seq_length_2 = self.monomers[1].template_feature_dict['template_aatype'].shape[1]
-        num_template_1 = self.monomers[0].template_feature_dict['template_aatype'].shape[0]
-        num_template_2 = self.monomers[1].template_feature_dict['template_aatype'].shape[0]
+        seq_length_1 = self.monomers[0].feature_dict['template_aatype'].shape[1]
+        seq_length_2 = self.monomers[1].feature_dict['template_aatype'].shape[1]
+        num_template_1 = self.monomers[0].feature_dict['template_aatype'].shape[0]
+        num_template_2 = self.monomers[1].feature_dict['template_aatype'].shape[0]
         
         concatenate_template_obj = ConcatenatedTemplate(self.monomers)
         concat_aatype_1,concat_atom_mask_1,concat_atom_pos_1 = concatenate_template_obj.concatenate_features(idx=0,
@@ -78,6 +80,50 @@ class MultimericInput:
             "template_sum_probs": np.zeros([self.num_template], dtype=np.float32),
             "template_sequence" : [f"none".encode()] * self.num_template
         }
+
+    def create_mock_template_features(self) -> dict:
+        """this method is triggered only when the mode is set to not to use templates"""
+
+        for m in self.monomers:
+            curr_seq = m.feature_dict['sequence'][0].decode("utf-8")
+            self.query_sequence = self.query_sequence + curr_seq
+
+        query_sequence = self.query_sequence
+        num_temp = 1
+        ln = (
+            len(query_sequence)
+            if isinstance(query_sequence, str)
+            else sum(len(s) for s in query_sequence)
+        )
+        output_templates_sequence = "A" * ln
+        output_confidence_scores = np.full(ln, 1.0)
+
+
+        templates_all_atom_positions = np.zeros(
+            (ln, templates.residue_constants.atom_type_num, 3)
+        )
+        templates_all_atom_masks = np.zeros((ln, templates.residue_constants.atom_type_num))
+        templates_aatype = templates.residue_constants.sequence_to_onehot(
+            output_templates_sequence, templates.residue_constants.HHBLITS_AA_TO_ID
+        )
+        template_features = {
+            "template_all_atom_positions": np.tile(
+                templates_all_atom_positions[None], [num_temp, 1, 1, 1]
+            ),
+            "template_all_atom_masks": np.tile(
+                templates_all_atom_masks[None], [num_temp, 1, 1]
+            ),
+            "template_sequence": [f"none".encode()] * num_temp,
+            "template_aatype": np.tile(np.array(templates_aatype)[None], [num_temp, 1, 1]),
+            "template_confidence_scores": np.tile(
+                output_confidence_scores[None], [num_temp, 1]
+            ),
+            "template_domain_names": [f"none".encode()] * num_temp,
+            "template_release_date": [f"none".encode()] * num_temp,
+            "template_sum_probs": np.zeros([num_temp], dtype=np.float32),
+        }
+        return template_features
+
 
     def create_msa_dict(self,work_dir) -> dict:
         """create an MSAFeatures object and return msa feature dict"""
