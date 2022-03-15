@@ -46,7 +46,7 @@ def main(argv):
     """main function """
 
     feature_dict = create_input_dict(FLAGS.precomputed_dir,FLAGS.processed_dir,FLAGS.protein_names)
-    dump_path = os.path.join(FLAGS.output_dir,'processed_feature.pkl')
+    dump_path = os.path.join(FLAGS.output_dir,'colabfold_feature.pkl')
     pickle.dump(feature_dict,open(dump_path,'wb'))
 
 if __name__ == '__main__':
